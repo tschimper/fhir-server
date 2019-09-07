@@ -39,9 +39,10 @@ namespace Microsoft.Health.Fhir.Core.Features.Validation
                 else
                 {
                     Issues.Add(new OperationOutcomeIssue(
-                            OperationOutcomeConstants.IssueSeverity.Error,
-                            OperationOutcomeConstants.IssueType.Invalid,
-                            failure.ErrorMessage));
+                        OperationOutcomeConstants.IssueSeverity.Error,
+                        OperationOutcomeConstants.IssueType.Invalid,
+                        failure.ErrorMessage,
+                        !string.IsNullOrEmpty(failure.PropertyName) ? new[] { failure.PropertyName } : null));
                 }
             }
         }

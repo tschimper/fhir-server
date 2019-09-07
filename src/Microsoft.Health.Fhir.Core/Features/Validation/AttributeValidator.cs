@@ -18,7 +18,7 @@ namespace Microsoft.Health.Fhir.Core.Features.Validation
 {
     public class AttributeValidator : IPropertyValidator
     {
-        private IModelAttributeValidator _modelAttributeValidator;
+        private readonly IModelAttributeValidator _modelAttributeValidator;
 
         public AttributeValidator(IModelAttributeValidator modelAttributeValidator)
         {
@@ -39,9 +39,10 @@ namespace Microsoft.Health.Fhir.Core.Features.Validation
 
                 if (!_modelAttributeValidator.TryValidate(resourceElement, results, recurse: false))
                 {
-                    foreach (var error in results)
+                    foreach (ValidationResult error in results)
                     {
-                        yield return new ValidationFailure(error.MemberNames?.FirstOrDefault(), error.ErrorMessage);
+                        var joinPropertyName = error.MemberNames?.Any() == true ? "." : string.Empty;
+                        yield return new ValidationFailure($"{resourceElement.InstanceType}{joinPropertyName}{error.MemberNames?.FirstOrDefault()}", error.ErrorMessage);
                     }
                 }
             }
