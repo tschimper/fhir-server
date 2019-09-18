@@ -20,6 +20,18 @@
         "ASPNETCORE_ENVIRONMENT": "development"
       },
       "applicationUrl": "https://localhost:44348/"
+    },
+    "TableStorage": {
+        "commandName": "Project",
+        "launchBrowser": true,
+        "environmentVariables": {
+            "TableStorage:ConnectionString": "UseDevelopmentStorage=true",
+            "TableStorage:TableName": "fhir",
+            "TestAuthEnvironment:FilePath": "..//..//testauthenvironment.json",
+            "DataStore": "TableStorage",
+            "ASPNETCORE_ENVIRONMENT": "development"
+        },
+        "applicationUrl": "https://localhost:44348/"
     }
   }
 }
