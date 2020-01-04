@@ -12,6 +12,7 @@ using System.Runtime.CompilerServices;
 [assembly: InternalsVisibleTo("Microsoft.Health.Fhir.R4.Core.UnitTests")]
 [assembly: InternalsVisibleTo("Microsoft.Health.Fhir.CosmosDb")]
 [assembly: InternalsVisibleTo("Microsoft.Health.Fhir.SqlServer")]
+[assembly: InternalsVisibleTo("Microsoft.Health.Fhir.S3Storage")]
 [assembly: InternalsVisibleTo("Microsoft.Health.Fhir.Api")]
 [assembly: InternalsVisibleTo("Microsoft.Health.Fhir.Api.UnitTests")]
 [assembly: InternalsVisibleTo("Microsoft.Health.Fhir.CosmosDb.UnitTests")]

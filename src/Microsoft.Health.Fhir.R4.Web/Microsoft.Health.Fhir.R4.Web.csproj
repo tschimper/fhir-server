@@ -6,11 +6,18 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="Amazon.Core" Version="0.15.0" />
+    <PackageReference Include="HL7.Fhir.Serialization" Version="1.3.0" />
     <PackageReference Include="IdentityServer4" Version="2.5.3" />
     <PackageReference Include="Microsoft.ApplicationInsights.AspNetCore" Version="2.7.1" />
-    <PackageReference Include="Microsoft.AspNetCore.App" />
+    <PackageReference Include="Microsoft.AspNetCore" Version="2.2.0" />
+    <PackageReference Include="Microsoft.AspNetCore.App"  />
     <PackageReference Include="Microsoft.Azure.Services.AppAuthentication" Version="1.3.1" />
     <PackageReference Include="Microsoft.CodeAnalysis.FxCopAnalyzers" Version="2.6.3" />
+    <PackageReference Include="Microsoft.CodeQuality.Analyzers" Version="2.6.3">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
     <PackageReference Include="Microsoft.Extensions.Configuration.AzureKeyVault" Version="2.2.0" />
     <PackageReference Include="Microsoft.Extensions.Logging.ApplicationInsights" Version="2.10.0" />
   </ItemGroup>
@@ -20,6 +27,7 @@
     <ProjectReference Include="..\Microsoft.Health.Fhir.Azure\Microsoft.Health.Fhir.Azure.csproj" />
     <ProjectReference Include="..\Microsoft.Health.Fhir.CosmosDb\Microsoft.Health.Fhir.CosmosDb.csproj" />
     <ProjectReference Include="..\Microsoft.Health.Fhir.R4.Api\Microsoft.Health.Fhir.R4.Api.csproj" />
+    <ProjectReference Include="..\Microsoft.Health.Fhir.S3Storage.Api\Microsoft.Health.Fhir.S3Storage.Api.csproj" />
     <ProjectReference Include="..\Microsoft.Health.Fhir.SqlServer.Api\Microsoft.Health.Fhir.SqlServer.Api.csproj" />
   </ItemGroup>
 
