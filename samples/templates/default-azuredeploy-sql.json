@@ -310,8 +310,6 @@
 
             "FhirServer:Security:Authentication:Audience": "[parameters('securityAuthenticationAudience')]",
 
-            "CosmosDb:ContinuationTokenSizeLimitInKb": "1",
-
             "SqlServer:Initialize": "true",
 
             "DataStore": "S3Storage"
