@@ -7,11 +7,8 @@
     "parameters": {
 
         "serviceName": {
-
             "type": "string",
-
             "minLength": 3,
-
             "maxLength": 24,
             "defaultValue": "FHIRMSTHO2APP",
 
@@ -83,7 +80,7 @@
 
             ],
 
-            "defaultValue": "S1"
+            "defaultValue": "F1"
 
         },
 
@@ -175,7 +172,7 @@
 
             "type": "string",
 
-            "defaultValue": "eastus",
+            "defaultValue": "centralus",
 
             "allowedValues": [
 
