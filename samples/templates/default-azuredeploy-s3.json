@@ -176,6 +176,8 @@
 
             "allowedValues": [
 
+                "centralus",
+                
                 "southeastasia",
 
                 "northeurope",
