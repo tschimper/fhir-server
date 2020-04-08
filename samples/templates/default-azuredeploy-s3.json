@@ -177,7 +177,7 @@
             "allowedValues": [
 
                 "centralus",
-                
+
                 "southeastasia",
 
                 "northeurope",
@@ -263,72 +263,163 @@
                 "description": "Only applies when specifying Repository Url"
 
             }
+        },
+        "S3StorageAuthentificationString": {
+
+            "type": "string",
+
+            "defaultValue": "",
+
+            "metadata": {
+
+                "description": "S3 Authentication"
+
+            }
+
+        },
+
+        "S3StorageDeleteAllDataOnStartup": {
+
+            "type": "string",
+
+            "defaultValue": "false",
+
+            "metadata": {
+
+                "description": "Delete all Data on Startup"
+
+            }
+
+        },
+        "S3StorageInitialize": {
+
+            "type": "string",
+
+            "defaultValue": "true",
+
+            "metadata": {
+
+                "description": "Initialize Storage on Startup"
+
+            }
+
+        },
+        "S3StorageS3StorageURL": {
+
+            "type": "string",
+
+            "defaultValue": "http://s3.amazon.com",
+
+            "metadata": {
+
+                "description": "S3 Storage URL"
+
+            }
+
+        },
+        "S3StorageSchemaVersion": {
+
+            "type": "string",
+
+            "defaultValue": "V2",
+
+            "metadata": {
+
+                "description": "Schema Version"
+
+            }
+
+        },
+        "S3StorageSecretString": {
+
+            "type": "string",
+
+            "defaultValue": "",
+
+            "metadata": {
+
+                "description": "S3 Secret"
+
+            }
 
         }
 
     },
 
-    "variables": {
 
-        "isMAG": "[or(contains(resourceGroup().location,'usgov'),contains(resourceGroup().location,'usdod'))]",
+  "variables": {
 
-        "serviceName": "[toLower(parameters('serviceName'))]",
+    "isMAG": "[or(contains(resourceGroup().location,'usgov'),contains(resourceGroup().location,'usdod'))]",
 
-        "keyvaultEndpoint": "[if(variables('isMAG'), concat('https://', variables('serviceName'), '.vault.usgovcloudapi.net/'), concat('https://', variables('serviceName'), '.vault.azure.net/'))]",
+    "serviceName": "[toLower(parameters('serviceName'))]",
 
-        "appServicePlanResourceGroup": "[if(empty(parameters('appServicePlanResourceGroup')), resourceGroup().name, parameters('appServicePlanResourceGroup'))]",
+    "keyvaultEndpoint": "[if(variables('isMAG'), concat('https://', variables('serviceName'), '.vault.usgovcloudapi.net/'), concat('https://', variables('serviceName'), '.vault.azure.net/'))]",
 
-        "appServicePlanName": "[if(empty(parameters('appServicePlanName')),concat(variables('serviceName'),'-asp'),parameters('appServicePlanName'))]",
+    "appServicePlanResourceGroup": "[if(empty(parameters('appServicePlanResourceGroup')), resourceGroup().name, parameters('appServicePlanResourceGroup'))]",
 
-        "appServiceResourceId": "[resourceId('Microsoft.Web/sites', variables('serviceName'))]",
+    "appServicePlanName": "[if(empty(parameters('appServicePlanName')),concat(variables('serviceName'),'-asp'),parameters('appServicePlanName'))]",
 
-        "securityAuthenticationEnabled": "[and(not(empty(parameters('securityAuthenticationAuthority'))),not(empty(parameters('securityAuthenticationAudience'))))]",
+    "appServiceResourceId": "[resourceId('Microsoft.Web/sites', variables('serviceName'))]",
 
-        "deploySourceCode": "[and(not(empty(parameters('repositoryUrl'))),not(empty(parameters('repositoryBranch'))))]",
+    "securityAuthenticationEnabled": "[and(not(empty(parameters('securityAuthenticationAuthority'))),not(empty(parameters('securityAuthenticationAudience'))))]",
 
-        "deployAppInsights": "[and(parameters('deployApplicationInsights'),not(variables('isMAG')))]",
+    "deploySourceCode": "[and(not(empty(parameters('repositoryUrl'))),not(empty(parameters('repositoryBranch'))))]",
 
-        "appInsightsName": "[concat('AppInsights-', variables('serviceName'))]",
+    "deployAppInsights": "[and(parameters('deployApplicationInsights'),not(variables('isMAG')))]",
 
-        "staticFhirServerConfigProperties": {
+    "appInsightsName": "[concat('AppInsights-', variables('serviceName'))]",
 
-            "APPINSIGHTS_PORTALINFO": "ASP.NETCORE",
+    "staticFhirServerConfigProperties": {
 
-            "APPINSIGHTS_PROFILERFEATURE_VERSION": "1.0.0",
+      "APPINSIGHTS_PORTALINFO": "ASP.NETCORE",
 
-            "APPINSIGHTS_SNAPSHOTFEATURE_VERSION": "1.0.0",
+      "APPINSIGHTS_PROFILERFEATURE_VERSION": "1.0.0",
 
-            "WEBSITE_NODE_DEFAULT_VERSION": "6.9.4",
+      "APPINSIGHTS_SNAPSHOTFEATURE_VERSION": "1.0.0",
 
-            "KeyVault:Endpoint": "[variables('keyvaultEndpoint')]",
+      "WEBSITE_NODE_DEFAULT_VERSION": "6.9.4",
 
-            "FhirServer:Security:Enabled": "[variables('securityAuthenticationEnabled')]",
+      "KeyVault:Endpoint": "[variables('keyvaultEndpoint')]",
 
-            "FhirServer:Security:EnableAadSmartOnFhirProxy": "[parameters('enableAadSmartOnFhirProxy')]",
+      "FhirServer:Security:Enabled": "[variables('securityAuthenticationEnabled')]",
 
-            "FhirServer:Security:Authentication:Authority": "[parameters('securityAuthenticationAuthority')]",
+      "FhirServer:Security:EnableAadSmartOnFhirProxy": "[parameters('enableAadSmartOnFhirProxy')]",
 
-            "FhirServer:Security:Authentication:Audience": "[parameters('securityAuthenticationAudience')]",
+      "FhirServer:Security:Authentication:Authority": "[parameters('securityAuthenticationAuthority')]",
 
-            "SqlServer:Initialize": "true",
+      "FhirServer:Security:Authentication:Audience": "[parameters('securityAuthenticationAudience')]",
 
-            "FhirServer:DataStore": "S3Storage"
+      "SqlServer:Initialize": "true",
 
-        },
+      "FhirServer:DataStore": "S3Storage"
 
-        "emptyFhirServerConfigProperties": {},
-
-        "kuduFhirServerConfigProperties": {
-
-            "PROJECT": "[concat('src/Microsoft.Health.Fhir.', parameters('fhirVersion'),'.Web/Microsoft.Health.Fhir.', parameters('fhirVersion'), '.Web.csproj')]"
-
-        },
-
-        "combinedFhirServerConfigProperties": "[union(variables('staticFhirServerConfigProperties'), parameters('additionalFhirServerConfigProperties'), if(variables('deploySourceCode'), variables('kuduFhirServerConfigProperties'), variables('emptyFhirServerConfigProperties')))]",
-
-        "computedSqlServerReference": "[concat('Microsoft.Sql/servers/', variables('serviceName'))]"
 
     },
+
+
+
+
+    "emptyFhirServerConfigProperties": {},
+
+    "kuduFhirServerConfigProperties": {
+
+      "PROJECT": "[concat('src/Microsoft.Health.Fhir.', parameters('fhirVersion'),'.Web/Microsoft.Health.Fhir.', parameters('fhirVersion'), '.Web.csproj')]"
+
+    },
+
+    "combinedFhirServerConfigProperties": "[union(variables('staticFhirServerConfigProperties'), parameters('additionalFhirServerConfigProperties'), if(variables('deploySourceCode'), variables('kuduFhirServerConfigProperties'), variables('emptyFhirServerConfigProperties')))]",
+
+    "computedSqlServerReference": "[concat('Microsoft.Sql/servers/', variables('serviceName'))]",
+
+    "S3Storage:AuthentificationString": "[parameters('S3StorageAuthentificationString')]",
+    "S3Storage:ConnectionString": "[concat('Server=tcp:', '',',1433;Initial Catalog=FHIR;Persist Security Info=False;User ID=', '',';Password=',parameters('sqlAdminPassword'),';MultipleActiveResultSets=False;Encrypt=True;TrustServerCertificate=False;Connection Timeout=30;')]",
+    "S3Storage:DeleteAllDataOnStartup": "[parameters('S3StorageDeleteAllDataOnStartup')]",
+    "S3Storage:Initialize": "[parameters('S3StorageInitialize')]",
+    "S3Storage:S3StorageURL": "[parameters('S3StorageS3StorageURL')]",
+    "S3Storage:SchemaVersion": "[parameters('S3StorageSchemaVersion')]",
+    "S3Storage:SecretString": "[parameters('S3StorageSecretString')]"
+
+  },
 
     "resources": [
 
