@@ -3,6 +3,7 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
+using System;
 using Microsoft.AspNetCore;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Azure.KeyVault;
@@ -33,7 +34,8 @@ namespace Microsoft.Health.Fhir.Web
                 })
                 .UseStartup<Startup>()
                 .Build();
-
+            Console.WriteLine("Start main");
+            Console.WriteLine("Host.Run()");
             host.Run();
         }
     }

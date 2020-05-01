@@ -82,7 +82,7 @@ namespace Microsoft.Extensions.DependencyInjection
                 .Scoped()
                 .AsSelf()
                 .AsImplementedInterfaces();
-            Console.WriteLine("Starting S3 Healthchecks");
+
             services
                 .AddHealthChecks()
                 .AddCheck<S3StorageHealthCheck>(nameof(S3StorageHealthCheck));

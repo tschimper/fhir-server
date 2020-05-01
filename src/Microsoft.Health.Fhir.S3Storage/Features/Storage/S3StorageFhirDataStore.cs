@@ -19,10 +19,10 @@ using Amazon;
 using Amazon.S3;
 using Amazon.S3.Model;
 using Amazon.S3.Transfer;
-
-// using AWSSDK;
 using EnsureThat;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
+using Microsoft.Health.Fhir.Core.Configs;
 using Microsoft.Health.Fhir.Core.Exceptions;
 using Microsoft.Health.Fhir.Core.Features.Conformance;
 using Microsoft.Health.Fhir.Core.Features.Persistence;
@@ -36,7 +36,7 @@ using Task = System.Threading.Tasks.Task;
 namespace Microsoft.Health.Fhir.S3Storage.Features.Storage
 {
     /// <summary>
-    /// A SQL Server-backed <see cref="IFhirDataStore"/>.
+    /// A S3 Server-backed <see cref="IFhirDataStore"/>.
     /// </summary>
     internal class S3StorageFhirDataStore : IFhirDataStore, IProvideCapability
     {
@@ -49,17 +49,13 @@ namespace Microsoft.Health.Fhir.S3Storage.Features.Storage
         private readonly V1.UpsertResourceLinkTvpGenerator<S3ResourceMetadata> _upsertResourceLinkTvpGenerator;
         private readonly V1.UpsertResourceTvpGenerator<S3ResourceMetadata> _upsertResourceTvpGenerator;
         private readonly RecyclableMemoryStreamManager _memoryStreamManager;
+        private readonly CoreFeatureConfiguration _coreFeatures;
+        private readonly S3SqlConnectionWrapperFactory _sqlConnectionWrapperFactory;
         private readonly ILogger<S3StorageFhirDataStore> _logger;
         private string _awsBucket;
         private System.Uri _awsHost;
         private RegionEndpoint bucketRegion = RegionEndpoint.USWest2;
         private AmazonS3Config s3Config = new AmazonS3Config();
-
-        // private AwsCredential _awsCredentials;
-
-        // Specify your bucket region (an example region is shown).
-
-        // private static AwsRegion _awsbucketRegion;
 
         private static AmazonS3Client client = null;
 
@@ -71,34 +67,41 @@ namespace Microsoft.Health.Fhir.S3Storage.Features.Storage
             S3SearchParameterToSearchValueTypeMap searchParameterTypeMap,
             V1.UpsertResourceTvpGenerator<S3ResourceMetadata> upsertResourceTvpGenerator,
             V1.UpsertResourceLinkTvpGenerator<S3ResourceMetadata> upsertResourceLinkTvpGenerator,
+            IOptions<CoreFeatureConfiguration> coreFeatures,
+            S3SqlConnectionWrapperFactory sqlConnectionWrapperFactory,
             ILogger<S3StorageFhirDataStore> logger)
         {
             EnsureArg.IsNotNull(configuration, nameof(configuration));
             EnsureArg.IsNotNull(model, nameof(model));
             EnsureArg.IsNotNull(searchParameterTypeMap, nameof(searchParameterTypeMap));
             EnsureArg.IsNotNull(upsertResourceTvpGenerator, nameof(upsertResourceTvpGenerator));
+            EnsureArg.IsNotNull(upsertResourceLinkTvpGenerator, nameof(upsertResourceLinkTvpGenerator));
+            EnsureArg.IsNotNull(coreFeatures, nameof(coreFeatures));
+            EnsureArg.IsNotNull(sqlConnectionWrapperFactory, nameof(sqlConnectionWrapperFactory));
             EnsureArg.IsNotNull(logger, nameof(logger));
 
             _configuration = configuration;
             _model = model;
             _searchParameterTypeMap = searchParameterTypeMap;
+            _upsertResourceTvpGenerator = upsertResourceTvpGenerator;
             _upsertResourceLinkTvpGenerator = upsertResourceLinkTvpGenerator;
             _upsertResourceTvpGenerator = upsertResourceTvpGenerator;
-
+            _coreFeatures = coreFeatures.Value;
+            _sqlConnectionWrapperFactory = sqlConnectionWrapperFactory;
+            _configuration = configuration;
             _logger = logger;
-
             _memoryStreamManager = new RecyclableMemoryStreamManager();
             _awsHost = _configuration.S3StorageURL;
 
             // awsCredentials = new AwsCredential(_configuration.AuthentificationString, _configuration.SecretString);
-            // if (_configuration.S3Type == "AWS")
-            // {
-            //    _awsbucketRegion = AwsRegion.EUCentral1;
-            // }
-            // else
-            // {
-            //    _awsbucketRegion = AwsRegion.USWest2;
-            // }
+            if (_configuration.S3Type == "AWS")
+            {
+                bucketRegion = RegionEndpoint.EUCentral1;
+            }
+            else
+            {
+                bucketRegion = RegionEndpoint.USWest2;
+            }
 
             _awsBucket = "kfhfhir1";
         }
@@ -144,7 +147,7 @@ namespace Microsoft.Health.Fhir.S3Storage.Features.Storage
             Console.WriteLine(client.Config.UseHttp.ToString());
 
             using (var stream = new RecyclableMemoryStream(_memoryStreamManager))
-            using (var writer = new StreamWriter(stream, SQLResourceEncoding))
+            using (var writer = new StreamWriter(stream, S3ResourceEncoding))
             {
                 // Neu
                 writer.Write(resource.RawResource.Data);
@@ -164,8 +167,8 @@ namespace Microsoft.Health.Fhir.S3Storage.Features.Storage
                     ContentType = "application/json",
                 };
 
-                    try
-                    {
+                try
+                {
                     TransferUtility fileTransferUtility = new TransferUtility(client);
 
                     fileTransferUtility.Upload(fileTransferUtilityRequest);
@@ -187,19 +190,17 @@ namespace Microsoft.Health.Fhir.S3Storage.Features.Storage
                     // {
                     //  response = await client.PutObjectAsync(request);
                     isS3Objectvalid = true;
-                    }
-                    catch (Exception e)
-                    {
-                        _logger.LogDebug("Error storing S3 Object Exception {Exception}", e.ToString());
+                }
+                catch (Exception e)
+                {
+                    _logger.LogDebug("Error storing S3 Object Exception {Exception}", e.ToString());
                     isS3Objectvalid = false;
                 }
             }
 
-            using (var connection = new SqlConnection(_configuration.ConnectionString))
+            using (S3SqlConnectionWrapper sqlConnectionWrapper = _sqlConnectionWrapperFactory.ObtainSqlConnectionWrapper(true))
             {
-                await connection.OpenAsync(cancellationToken);
-
-                using (var command = connection.CreateCommand())
+                using (SqlCommand command = sqlConnectionWrapper.CreateSqlCommand())
                 using (var stream = new RecyclableMemoryStream(_memoryStreamManager))
                 using (var gzipStream = new GZipStream(stream, CompressionMode.Compress))
                 using (var writer = new StreamWriter(gzipStream, SQLResourceEncoding))
@@ -208,6 +209,7 @@ namespace Microsoft.Health.Fhir.S3Storage.Features.Storage
                     writer.Flush();
 
                     stream.Seek(0, 0);
+
                     if (isS3Objectvalid)
                     {
                         V1.UpsertResourceLink.PopulateCommand(
@@ -280,9 +282,6 @@ namespace Microsoft.Health.Fhir.S3Storage.Features.Storage
 
         private void CreatClient()
         {
-            // RegionEndpoint bucketRegion = RegionEndpoint.USWest2;
-            // AmazonS3Config s3Config = new AmazonS3Config();
-
             if (_configuration.S3Type == "AWS")
             {
                 bucketRegion = RegionEndpoint.EUCentral1;
@@ -297,7 +296,6 @@ namespace Microsoft.Health.Fhir.S3Storage.Features.Storage
 
             // s3Config.RegionEndpoint = bucketRegion;
 
-            // s3Config.ServiceURL = _configuration.S3StorageURL.ToString();
             s3Config.UseHttp = false;
             if (client == null)
             {
@@ -309,10 +307,11 @@ namespace Microsoft.Health.Fhir.S3Storage.Features.Storage
         {
             await _model.EnsureInitialized();
 
-            using (var connection = new SqlConnection(_configuration.ConnectionString))
+            using (S3SqlConnectionWrapper sqlConnectionWrapper = _sqlConnectionWrapperFactory.ObtainSqlConnectionWrapper(true))
             {
                 Console.WriteLine("Read Object");
-                await connection.OpenAsync(cancellationToken);
+
+                // await connection.OpenAsync(cancellationToken);
 
                 int? requestedVersion = null;
                 if (!string.IsNullOrEmpty(key.VersionId))
@@ -325,7 +324,7 @@ namespace Microsoft.Health.Fhir.S3Storage.Features.Storage
                     requestedVersion = parsedVersion;
                 }
 
-                using (SqlCommand command = connection.CreateCommand())
+                using (SqlCommand command = sqlConnectionWrapper.CreateSqlCommand())
                 {
                     V1.ReadResource.PopulateCommand(
                         command,
@@ -361,7 +360,7 @@ namespace Microsoft.Health.Fhir.S3Storage.Features.Storage
                                CreatClient();
                                using (GetObjectResponse response = await client.GetObjectAsync(_awsBucket, linkToRawResource))
                                using (Stream responseStream = response.ResponseStream)
-                               using (StreamReader reader = new StreamReader(responseStream, Encoding.Unicode))
+                               using (StreamReader reader = new StreamReader(responseStream, SQLResourceEncoding))
                                {
                                     // The following outputs the content of my text file:
                                     // string content = reader.ReadToEnd();
@@ -381,6 +380,7 @@ namespace Microsoft.Health.Fhir.S3Storage.Features.Storage
                             else
                             {
                                 Console.WriteLine("S3 Object not valid, get Data from SQL Database");
+
                                 using (rawResourceStream)
                                 using (var gzipStream = new GZipStream(rawResourceStream, CompressionMode.Decompress))
                                 using (var reader = new StreamReader(gzipStream, SQLResourceEncoding))
@@ -392,6 +392,10 @@ namespace Microsoft.Health.Fhir.S3Storage.Features.Storage
                         catch (AmazonS3Exception e)
                         {
                             _logger.LogWarning(e, "Failed to read to the S3 data {Exception}", e.Message);
+                        }
+                        catch (Exception e)
+                        {
+                            _logger.LogWarning(e, "Failed to read to the SQL data {Exception}", e.Message);
                         }
 
                         return new ResourceWrapper(
@@ -476,22 +480,24 @@ namespace Microsoft.Health.Fhir.S3Storage.Features.Storage
             }
         }
 
-        public void Build(IListedCapabilityStatement statement)
+        public void Build(ICapabilityStatementBuilder builder)
         {
-            EnsureArg.IsNotNull(statement, nameof(statement));
+            EnsureArg.IsNotNull(builder, nameof(builder));
 
-            statement.SupportsInclude = true;
+            builder.AddDefaultResourceInteractions()
+                   .AddDefaultSearchParameters()
+                   .AddDefaultRestSearchParams();
 
-            foreach (var resource in ModelInfoProvider.GetResourceTypeNames())
+            if (_coreFeatures.SupportsBatch)
             {
-                statement.BuildRestResourceComponent(resource, builder =>
+                // Batch supported added in listedCapability
+                builder.AddRestInteraction(SystemRestfulInteraction.Batch);
+            }
+
+            if (_coreFeatures.SupportsTransaction)
             {
-                    builder.AddResourceVersionPolicy(ResourceVersionPolicy.NoVersion);
-                    builder.AddResourceVersionPolicy(ResourceVersionPolicy.Versioned);
-                    builder.AddResourceVersionPolicy(ResourceVersionPolicy.VersionedUpdate);
-                    builder.ReadHistory = true;
-                    builder.UpdateCreate = true;
-                });
+                // Transaction supported added in listedCapability
+                builder.AddRestInteraction(SystemRestfulInteraction.Transaction);
             }
         }
     }

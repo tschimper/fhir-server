@@ -37,5 +37,8 @@ namespace Microsoft.Health.Fhir.S3Storage.Configs
         /// If set, this applies schema 1 which resets all the data in the database. This is temporary until the schema migration tool is complete.
         /// </summary>
         public string SecretString { get; set; }
+
+        // WARNING: THIS Swiches between "AWS" (with Region EUCentral) and Cloudian (Region null)
+        public string S3Type { get; set; }
     }
 }

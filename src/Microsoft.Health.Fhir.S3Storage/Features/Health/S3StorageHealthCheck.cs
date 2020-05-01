@@ -5,11 +5,12 @@
 
 using System;
 using System.Data.SqlClient;
-using System.IO;
+
+// using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 
-using Amazon;
+// using Amazon;
 using Amazon.S3;
 using EnsureThat;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
@@ -25,17 +26,19 @@ namespace Microsoft.Health.Fhir.S3Storage.Features.Health
     {
         private readonly S3StorageDataStoreConfiguration _configuration;
         private readonly ILogger<S3StorageHealthCheck> _logger;
-        private string _awsBucket;
-        private string _awsKeyName;
-        private System.Uri _awsHost;
-        private AwsCredential _awsCredentials;
+
+        // private string _awsBucket = "";
+        // private string _awsKeyName = "";
+        // private System.Uri _awsHost;
+
+        // private AwsCredential _awsCredentials;
 
         // Specify your bucket region (an example region is shown).
 
-        private static AwsRegion _bucketRegion;
+        // private static AwsRegion _bucketRegion = null;
 
-        private static S3Client client;
-        private string responseBody = string.Empty;
+        // private static AmazonS3Client client = null;
+        // private string responseBody = string.Empty;
 
         public S3StorageHealthCheck(S3StorageDataStoreConfiguration configuration, ILogger<S3StorageHealthCheck> logger)
         {
@@ -44,11 +47,20 @@ namespace Microsoft.Health.Fhir.S3Storage.Features.Health
 
             _configuration = configuration;
             _logger = logger;
-            _awsBucket = "infrastructurefhir";
-            _awsKeyName = "fhirserver";
-            _awsHost = _configuration.S3StorageURL;
-            _awsCredentials = new AwsCredential(_configuration.AuthentificationString, _configuration.SecretString);
-            _bucketRegion = AwsRegion.EUCentral1;
+
+            // _awsBucket = "infrastructurefhir1";
+            // _awsKeyName = "fhirserver";
+            // _awsHost = _configuration.S3StorageURL;
+
+            // _awsCredentials = new AwsCredential(_configuration.AuthentificationString, _configuration.SecretString);
+            // if (_configuration.S3Type == "AWS")
+            // {
+            //    _bucketRegion = AwsRegion.EUCentral1;
+            // }
+            // else
+            // {
+            //    _bucketRegion = AwsRegion.USWest2;
+            // }
         }
 
         public async Task<HealthCheckResult> CheckHealthAsync(HealthCheckContext context, CancellationToken cancellationToken)
@@ -65,32 +77,32 @@ namespace Microsoft.Health.Fhir.S3Storage.Features.Health
                     await command.ExecuteScalarAsync(cancellationToken);
                 }
 
-                client = new S3Client(_bucketRegion, _awsCredentials);
+                // client = new S3Client(_bucketRegion, _awsCredentials);
 
-                // ReadObjectDataAsync().Wait();
-                GetObjectRequest request = new GetObjectRequest(_awsHost.ToString(), _awsBucket, _awsKeyName);
+                //// ReadObjectDataAsync().Wait();
+                // GetObjectRequest request = new GetObjectRequest(_awsHost.ToString(), _awsBucket, _awsKeyName);
 
-                using (S3Object response = await client.GetObjectAsync(request))
-                {
-                    var responseStream = response.OpenAsync();
-                    using (StreamReader reader = new StreamReader(responseStream.Result))
-                    {
-                        // string title = response.Metadata["x-amz-meta-title"]; // Assume you have "title" as medata added to the object.
-                        // string contentType = response.Headers["Content-Type"];
-                        // Console.WriteLine("Object metadata, Title: {0}", title);
-                        // Console.WriteLine("Content type: {0}", contentType);
+                // using (S3Object response = await client.GetObjectAsync(request))
+                // {
+                //    var responseStream = response.OpenAsync();
+                //    using (StreamReader reader = new StreamReader(responseStream.Result))
+                //    {
+                //        // string title = response.Metadata["x-amz-meta-title"]; // Assume you have "title" as medata added to the object.
+                //        // string contentType = response.Headers["Content-Type"];
+                //        // Console.WriteLine("Object metadata, Title: {0}", title);
+                //        // Console.WriteLine("Content type: {0}", contentType);
 
-                        responseBody = reader.ReadToEnd(); // Now you process the response body.
-                        if (responseBody != "ok")
-                        {
-                            return HealthCheckResult.Healthy("Control Object for this servers says No for this server.");
-                        }
-                    }
-                }
+                // responseBody = reader.ReadToEnd(); // Now you process the response body.
+                //        if (responseBody != "ok")
+                //        {
+                //            return HealthCheckResult.Healthy("Control Object for this servers says No for this server.");
+                //        }
+                //    }
+                // }
 
                 return HealthCheckResult.Healthy("Successfully connected to the SQL and S3 Part of the data store.");
             }
-            catch (S3Exception e)
+            catch (AmazonS3Exception e)
             {
                 _logger.LogWarning(e, "Failed to connect to the S3 data store.");
                 return HealthCheckResult.Unhealthy("Failed to connect to the S3 store.");

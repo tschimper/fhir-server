@@ -25,9 +25,9 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Amazon.Core" Version="0.14.0" />
-    <PackageReference Include="Amazon.S3" Version="0.14.1" />
-    <PackageReference Include="Carbon.Storage" Version="2.0.0" />
+    <PackageReference Include="AWSSDK.Core" Version="3.3.106.11" />
+    <PackageReference Include="AWSSDK.Extensions.NETCore.Setup" Version="3.3.101" />
+    <PackageReference Include="AWSSDK.S3" Version="3.3.110.57" />
     <PackageReference Include="Ensure.That" Version="8.1.2" />
     <PackageReference Include="Microsoft.CodeAnalysis.FxCopAnalyzers" Version="2.6.3" />
     <PackageReference Include="Microsoft.IO.RecyclableMemoryStream" Version="1.3.2" />

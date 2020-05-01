@@ -8,7 +8,8 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using Microsoft.Health.Fhir.Api.Features.ApiNotifications;
+
+// using Microsoft.Health.Fhir.Api.Features.ApiNotifications;
 using Microsoft.Health.Fhir.Azure;
 
 namespace Microsoft.Health.Fhir.Web
@@ -18,6 +19,8 @@ namespace Microsoft.Health.Fhir.Web
         public Startup(IConfiguration configuration)
         {
             Configuration = configuration;
+            Console.WriteLine("startup conf:");
+            Console.WriteLine(string.Empty, Configuration);
         }
 
         public IConfiguration Configuration { get; }
@@ -33,16 +36,20 @@ namespace Microsoft.Health.Fhir.Web
                 .AddAzureExportDestinationClient();
 
             string dataStore = Configuration["DataStore"];
+            Console.WriteLine("datastore  found:" + dataStore);
             if (dataStore.Equals(KnownDataStores.CosmosDb, StringComparison.InvariantCultureIgnoreCase))
             {
+                Console.WriteLine("add Storage CosmosDB");
                 fhirServerBuilder.AddCosmosDb(Configuration);
             }
             else if (dataStore.Equals(KnownDataStores.SqlServer, StringComparison.InvariantCultureIgnoreCase))
             {
+                Console.WriteLine("add Storage SQLServer");
                 fhirServerBuilder.AddExperimentalSqlServer();
             }
             else if (dataStore.Equals(KnownDataStores.S3Storage, StringComparison.InvariantCultureIgnoreCase))
             {
+                Console.WriteLine("add Storage S3Storage");
                 fhirServerBuilder.AddExperimentalS3Storage();
             }
 
@@ -52,6 +59,7 @@ namespace Microsoft.Health.Fhir.Web
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
         public virtual void Configure(IApplicationBuilder app)
         {
+            Console.WriteLine("app.UseFhirServer");
             app.UseFhirServer();
 
             app.UseDevelopmentIdentityProvider();
@@ -63,6 +71,8 @@ namespace Microsoft.Health.Fhir.Web
         private void AddApplicationInsightsTelemetry(IServiceCollection services)
         {
             string instrumentationKey = Configuration["ApplicationInsights:InstrumentationKey"];
+
+            Console.WriteLine("AddApplicationInsightsTelemetry");
 
             if (!string.IsNullOrWhiteSpace(instrumentationKey))
             {

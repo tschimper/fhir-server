@@ -1,0 +1,43 @@
+{
+    "profiles": {
+        "CosmosDb": {
+            "commandName": "Project",
+            "launchBrowser": true,
+            "environmentVariables": {
+                "ConnectionString": "localhost,1433;Trusted_Connection=False;User Id=sa;Password=Passwoerd1",
+                "TestAuthEnvironment:FilePath": "..//..//testauthenvironment.json",
+                "DataStore": "CosmosDB",
+                "ASPNETCORE_ENVIRONMENT": "development"
+            },
+            "applicationUrl": "https://localhost:44348/"
+        },
+        "SqlServer": {
+            "commandName": "Project",
+            "launchBrowser": true,
+            "environmentVariables": {
+                "SqlServer:Initialize": "true",
+                "TestAuthEnvironment:FilePath": "..//..//testauthenvironment.json",
+                "SqlServer:ConnectionString": "Server=localhost,1434;Database=FHIR;Trusted_Connection=False;User Id=sa;Password=Passwoerd1;ConnectRetryCount=0;Integrated Security=true",
+                "DataStore": "SqlServer",
+                "ASPNETCORE_ENVIRONMENT": "development"
+            },
+            "applicationUrl": "https://localhost:44348/"
+        },
+        "S3Storage": {
+            "commandName": "Project",
+            "launchBrowser": true,
+            "environmentVariables": {
+                "S3Storage:ConnectionString": "Server=localhost,1434;Database=FHIR;Trusted_Connection=False;User Id=sa;Password=Passwoerd1;ConnectRetryCount=0;Integrated Security=true",
+                "S3Storage:SecretString": "Password",
+                "S3Storage:DeleteAllDataOnStartup": "true",
+                "TestAuthEnvironment:FilePath": "..//..//testauthenvironment.json",
+                "DataStore": "S3Storage",
+                "S3Storage:AuthentificationString": "User",
+                "S3Storage:Initialize": "true",
+                "S3Storage:SchemaVersion": "V1",
+                "ASPNETCORE_ENVIRONMENT": "development"
+            },
+            "applicationUrl": "https://localhost:44348/"
+        }
+    } 
+}
