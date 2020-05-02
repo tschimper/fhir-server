@@ -14,6 +14,8 @@ namespace Microsoft.Health.Fhir.Tests.Common.FixtureParameters
 
         SqlServer = 2,
 
-        All = CosmosDb | SqlServer,
+        S3Storage = 4,
+
+        All = CosmosDb | SqlServer | S3Storage,
     }
 }

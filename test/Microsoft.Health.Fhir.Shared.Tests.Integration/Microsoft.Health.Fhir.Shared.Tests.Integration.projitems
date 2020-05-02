@@ -21,6 +21,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)Persistence\NullFhirDocumentQueryLogger.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Persistence\SqlDataReaderExtensionsTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Persistence\SqlServerFhirStorageTestHelper.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Persistence\S3StorageFhirStorageTestsFixture.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Persistence\SqlServerFhirStorageTestsFixture.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Persistence\SqlServerTransactionScopeTests.cs" />
   </ItemGroup>

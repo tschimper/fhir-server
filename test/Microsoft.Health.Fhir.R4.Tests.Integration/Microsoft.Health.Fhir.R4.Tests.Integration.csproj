@@ -18,6 +18,8 @@
     <ProjectReference Include="..\..\src\Microsoft.Health.Fhir.Azure\Microsoft.Health.Fhir.Azure.csproj" />
     <ProjectReference Include="..\..\src\Microsoft.Health.Fhir.Core\Microsoft.Health.Fhir.Core.csproj" />
     <ProjectReference Include="..\..\src\Microsoft.Health.Fhir.CosmosDb\Microsoft.Health.Fhir.CosmosDb.csproj" />
+    <ProjectReference Include="..\..\src\Microsoft.Health.Fhir.S3Storage.Api\Microsoft.Health.Fhir.S3Storage.Api.csproj" />
+    <ProjectReference Include="..\..\src\Microsoft.Health.Fhir.S3Storage\Microsoft.Health.Fhir.S3Storage.csproj" />
     <ProjectReference Include="..\..\src\Microsoft.Health.Fhir.SqlServer.Api\Microsoft.Health.Fhir.SqlServer.Api.csproj" />
     <ProjectReference Include="..\..\src\Microsoft.Health.Fhir.SqlServer\Microsoft.Health.Fhir.SqlServer.csproj" />
     <ProjectReference Include="..\..\src\Microsoft.Health.Fhir.R4.Core\Microsoft.Health.Fhir.R4.Core.csproj" />

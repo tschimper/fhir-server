@@ -27,6 +27,9 @@ namespace Microsoft.Health.Fhir.Tests.Integration.Persistence
                 case Common.FixtureParameters.DataStore.SqlServer:
                     _fixture = new SqlServerFhirStorageTestsFixture();
                     break;
+                case Common.FixtureParameters.DataStore.S3Storage:
+                    _fixture = new S3StorageFhirStorageTestsFixture();
+                    break;
                 default:
                     throw new ArgumentOutOfRangeException(nameof(dataStore), dataStore, null);
             }
