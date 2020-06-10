@@ -50,6 +50,8 @@ namespace Microsoft.Health.Fhir.Tests.E2E.Rest
                     return Environment.GetEnvironmentVariable($"TestEnvironmentUrl{Constants.TestEnvironmentVariableVersionSuffix}");
                 case DataStore.SqlServer:
                     return Environment.GetEnvironmentVariable($"TestEnvironmentUrl{Constants.TestEnvironmentVariableVersionSuffix}_Sql");
+                case DataStore.S3Storage:
+                    return Environment.GetEnvironmentVariable($"TestEnvironmentUrl{Constants.TestEnvironmentVariableVersionSuffix}_S3");
                 default:
                     throw new ArgumentOutOfRangeException(nameof(dataStore), dataStore, null);
             }
