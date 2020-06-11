@@ -15,7 +15,6 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using Amazon;
 
 // using Amazon.Runtime;
 using Amazon.S3;
@@ -89,7 +88,16 @@ namespace Microsoft.Health.Fhir.S3Storage.Features.Search
 
             // _awsCredentials = new AwsCredential(_configuration.AuthentificationString, _configuration.SecretString);
             // _awsbucketRegion = AwsRegion.EUCentral1;
-            _awsBucket = "kfhfhir";
+            if (!string.IsNullOrEmpty(_configuration.S3Instance))
+            {
+                _awsBucket = string.Concat("instance-", _configuration.S3Instance.ToString());
+            }
+            else
+            {
+                _awsBucket = string.Concat("instance-", "no-instance");
+            }
+
+            // _awsBucket = "kfhfhir";
         }
 
         protected override async Task<SearchResult> SearchInternalAsync(SearchOptions searchOptions, CancellationToken cancellationToken)
@@ -240,7 +248,7 @@ namespace Microsoft.Health.Fhir.S3Storage.Features.Search
                             {
                                 Console.WriteLine("S3 Object Valid");
                                 Console.WriteLine(V1.Resource.LinkToRawResource);
-                                client = S3StorageFhirDataStore.CreatClient(_configuration);
+                                client = S3StorageFhirDataStore.CreatClient(_awsBucket, _configuration, _logger);
                                 using (GetObjectResponse response = await client.GetObjectAsync(_awsBucket, linkToRawResource))
                                 using (Stream responseStream = response.ResponseStream)
                                 using (StreamReader s3reader = new StreamReader(responseStream, S3ResourceEncoding))

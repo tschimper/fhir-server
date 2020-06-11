@@ -20,6 +20,9 @@ using Amazon.S3;
 using Amazon.S3.Model;
 using Amazon.S3.Model.Internal.MarshallTransformations;
 using Amazon.S3.Transfer;
+#pragma warning disable IDE0005 // Using-Direktive ist unnötig.
+using Amazon.S3.Util;
+#pragma warning restore IDE0005 // Using-Direktive ist unnötig.
 using EnsureThat;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
@@ -107,7 +110,43 @@ namespace Microsoft.Health.Fhir.S3Storage.Features.Storage
             }
 
             _awsHost = _configuration.S3StorageURL;
-            _awsBucket = "kfhfhir1";
+
+            if (!string.IsNullOrEmpty(_configuration.S3Instance))
+            {
+                _awsBucket = string.Concat("instance-", _configuration.S3Instance.ToString());
+            }
+            else
+            {
+                _awsBucket = string.Concat("instance-", "no-instance");
+            }
+
+            // awsBucket = "kfhfhir1";
+        }
+
+        // make bucket publicly readable
+
+        public static async Task CreateBucketAsync(string bucket, AmazonS3Client client, ILogger logger, CancellationToken token)
+        {
+            if (string.IsNullOrEmpty(bucket))
+            {
+                return;
+            }
+
+            try
+            {
+                if (await AmazonS3Util.DoesS3BucketExistV2Async(client, bucket))
+                {
+                    return;
+                }
+
+                await client.PutBucketAsync(new PutBucketRequest { BucketName = bucket, UseClientRegion = true }, token);
+            }
+            catch (Exception e)
+            {
+                logger.LogDebug("Error storing S3 Object Exception {Exception}", e.ToString());
+            }
+
+            // await S3.SetMultiPartLifetime(client, bucket, token);
         }
 
         public async Task<UpsertOutcome> UpsertAsync(ResourceWrapper resource, WeakETag weakETag, bool allowCreate, bool keepHistory, CancellationToken cancellationToken)
@@ -129,7 +168,7 @@ namespace Microsoft.Health.Fhir.S3Storage.Features.Storage
                 resource.LastModifiedClaims);
 
             // Hans Code
-            client = CreatClient(_configuration);
+            client = CreatClient(_awsBucket, _configuration, _logger);
 
             // Hans Code ende
             // Alter Code
@@ -284,7 +323,18 @@ namespace Microsoft.Health.Fhir.S3Storage.Features.Storage
             }
         }
 
-        public static AmazonS3Client CreatClient(S3StorageDataStoreConfiguration configuration)
+        public static AmazonS3Client CreatClient(string bucket, S3StorageDataStoreConfiguration configuration, ILogger logger)
+        {
+            AmazonS3Client client = CreatS3Client(configuration);
+            CancellationTokenSource source = new CancellationTokenSource();
+            CancellationToken token = source.Token;
+
+            Task bCreate = CreateBucketAsync(bucket, client, logger, token);
+            bCreate.Wait();
+            return client;
+        }
+
+        public static AmazonS3Client CreatS3Client(S3StorageDataStoreConfiguration configuration)
         {
             RegionEndpoint bucketRegion;
             AmazonS3Config s3Config = new AmazonS3Config();
@@ -374,7 +424,7 @@ namespace Microsoft.Health.Fhir.S3Storage.Features.Storage
                             {
                                Console.WriteLine("S3 Object Valid");
                                Console.WriteLine(resourceTable.LinkToRawResource);
-                               client = CreatClient(_configuration);
+                               client = CreatClient(_awsBucket, _configuration, _logger);
                                using (GetObjectResponse response = await client.GetObjectAsync(_awsBucket, linkToRawResource))
                                using (Stream responseStream = response.ResponseStream)
                                using (StreamReader reader = new StreamReader(responseStream, SQLResourceEncoding))

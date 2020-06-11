@@ -45,7 +45,7 @@ namespace Microsoft.Health.Fhir.Tests.Integration.Persistence
             var url = Environment.GetEnvironmentVariable("S3Storage:S3StorageURL") ?? "https://s3.us-west-2.amazonaws.com";
             var deleteOnStart = Environment.GetEnvironmentVariable("S3Storage:DeleteAllDataOnStartup") ?? "true";
 
-            _databaseName = $"FHIRINTEGRATIONTEST_{DateTimeOffset.UtcNow.ToUnixTimeSeconds()}_{BigInteger.Abs(new BigInteger(Guid.NewGuid().ToByteArray()))}";
+            _databaseName = $"FHIRS3INTEGRATIONTEST_{DateTimeOffset.UtcNow.ToUnixTimeSeconds()}_{BigInteger.Abs(new BigInteger(Guid.NewGuid().ToByteArray()))}";
             _masterConnectionString = new SqlConnectionStringBuilder(initialConnectionString) { InitialCatalog = "master" }.ToString();
             TestConnectionString = new SqlConnectionStringBuilder(initialConnectionString) { InitialCatalog = _databaseName }.ToString();
 
