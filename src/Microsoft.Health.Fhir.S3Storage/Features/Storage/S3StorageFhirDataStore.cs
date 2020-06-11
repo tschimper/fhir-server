@@ -18,6 +18,7 @@ using System.Threading.Tasks;
 using Amazon;
 using Amazon.S3;
 using Amazon.S3.Model;
+using Amazon.S3.Model.Internal.MarshallTransformations;
 using Amazon.S3.Transfer;
 using EnsureThat;
 using Microsoft.Extensions.Logging;
@@ -55,7 +56,6 @@ namespace Microsoft.Health.Fhir.S3Storage.Features.Storage
         private string _awsBucket;
         private System.Uri _awsHost;
         private RegionEndpoint bucketRegion = RegionEndpoint.USWest2;
-        private AmazonS3Config s3Config = new AmazonS3Config();
 
         private static AmazonS3Client client = null;
 
@@ -91,18 +91,22 @@ namespace Microsoft.Health.Fhir.S3Storage.Features.Storage
             _configuration = configuration;
             _logger = logger;
             _memoryStreamManager = new RecyclableMemoryStreamManager();
-            _awsHost = _configuration.S3StorageURL;
 
             // awsCredentials = new AwsCredential(_configuration.AuthentificationString, _configuration.SecretString);
             if (_configuration.S3Type == "AWS")
             {
                 bucketRegion = RegionEndpoint.EUCentral1;
             }
+            else if (_configuration.S3Type == "MINIO")
+            {
+                bucketRegion = RegionEndpoint.USEast1;
+            }
             else
             {
                 bucketRegion = RegionEndpoint.USWest2;
             }
 
+            _awsHost = _configuration.S3StorageURL;
             _awsBucket = "kfhfhir1";
         }
 
@@ -125,7 +129,7 @@ namespace Microsoft.Health.Fhir.S3Storage.Features.Storage
                 resource.LastModifiedClaims);
 
             // Hans Code
-            CreatClient();
+            client = CreatClient(_configuration);
 
             // Hans Code ende
             // Alter Code
@@ -280,9 +284,12 @@ namespace Microsoft.Health.Fhir.S3Storage.Features.Storage
             }
         }
 
-        private void CreatClient()
+        public static AmazonS3Client CreatClient(S3StorageDataStoreConfiguration configuration)
         {
-            if (_configuration.S3Type == "AWS")
+            RegionEndpoint bucketRegion;
+            AmazonS3Config s3Config = new AmazonS3Config();
+
+            if (configuration.S3Type == "AWS")
             {
                 bucketRegion = RegionEndpoint.EUCentral1;
                 s3Config.RegionEndpoint = bucketRegion;
@@ -290,17 +297,27 @@ namespace Microsoft.Health.Fhir.S3Storage.Features.Storage
             }
             else
             {
-                bucketRegion = RegionEndpoint.USWest2;
-                s3Config.ServiceURL = _configuration.S3StorageURL.ToString();
+                if (configuration.S3Type == "MINIO")
+                {
+                    bucketRegion = RegionEndpoint.USEast1;
+                    s3Config.RegionEndpoint = bucketRegion;
+                    s3Config.ForcePathStyle = true;
+                }
+                else
+                {
+                    s3Config.RegionEndpoint = RegionEndpoint.USWest2;
+                }
+
+                s3Config.ServiceURL = configuration.S3StorageURL.ToString();
             }
 
-            // s3Config.RegionEndpoint = bucketRegion;
-
-            s3Config.UseHttp = false;
+            s3Config.UseHttp = true;
             if (client == null)
             {
-                client = new AmazonS3Client(_configuration.AuthentificationString, _configuration.SecretString, s3Config);
+                client = new AmazonS3Client(configuration.AuthentificationString, configuration.SecretString, s3Config);
             }
+
+            return client;
         }
 
         public async Task<ResourceWrapper> GetAsync(ResourceKey key, CancellationToken cancellationToken)
@@ -357,7 +374,7 @@ namespace Microsoft.Health.Fhir.S3Storage.Features.Storage
                             {
                                Console.WriteLine("S3 Object Valid");
                                Console.WriteLine(resourceTable.LinkToRawResource);
-                               CreatClient();
+                               client = CreatClient(_configuration);
                                using (GetObjectResponse response = await client.GetObjectAsync(_awsBucket, linkToRawResource))
                                using (Stream responseStream = response.ResponseStream)
                                using (StreamReader reader = new StreamReader(responseStream, SQLResourceEncoding))

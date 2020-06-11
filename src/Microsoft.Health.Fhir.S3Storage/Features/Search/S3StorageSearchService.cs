@@ -55,8 +55,6 @@ namespace Microsoft.Health.Fhir.S3Storage.Features.Search
         private static AmazonS3Client client;
         private string _awsBucket;
         private System.Uri _awsHost;
-        private RegionEndpoint bucketRegion = RegionEndpoint.USWest2;
-        private AmazonS3Config s3Config = new AmazonS3Config();
 
         // Specify your bucket region (an example region is shown).
         // private static AwsRegion _awsbucketRegion;
@@ -242,7 +240,7 @@ namespace Microsoft.Health.Fhir.S3Storage.Features.Search
                             {
                                 Console.WriteLine("S3 Object Valid");
                                 Console.WriteLine(V1.Resource.LinkToRawResource);
-                                CreatClient();
+                                client = S3StorageFhirDataStore.CreatClient(_configuration);
                                 using (GetObjectResponse response = await client.GetObjectAsync(_awsBucket, linkToRawResource))
                                 using (Stream responseStream = response.ResponseStream)
                                 using (StreamReader s3reader = new StreamReader(responseStream, S3ResourceEncoding))
@@ -345,33 +343,6 @@ namespace Microsoft.Health.Fhir.S3Storage.Features.Search
 
             sb.AppendLine(sqlCommand.CommandText);
             _logger.LogInformation(sb.ToString());
-        }
-
-        private void CreatClient()
-        {
-            // RegionEndpoint bucketRegion = RegionEndpoint.USWest2;
-            // AmazonS3Config s3Config = new AmazonS3Config();
-
-            if (_configuration.S3Type == "AWS")
-            {
-                bucketRegion = RegionEndpoint.EUCentral1;
-                s3Config.RegionEndpoint = bucketRegion;
-                s3Config.ServiceURL = "https://s3.eu-central-1.amazonaws.com";
-            }
-            else
-            {
-                bucketRegion = RegionEndpoint.USWest2;
-                s3Config.ServiceURL = _configuration.S3StorageURL.ToString();
-            }
-
-            // s3Config.RegionEndpoint = bucketRegion;
-
-            // s3Config.ServiceURL = _configuration.S3StorageURL.ToString();
-            s3Config.UseHttp = false;
-            if (client == null)
-            {
-                client = new AmazonS3Client(_configuration.AuthentificationString, _configuration.SecretString, s3Config);
-            }
         }
     }
 }
