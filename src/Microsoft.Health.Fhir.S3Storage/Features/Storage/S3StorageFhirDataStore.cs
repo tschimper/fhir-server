@@ -178,6 +178,7 @@ namespace Microsoft.Health.Fhir.S3Storage.Features.Storage
 
             linktoRawResource = string.Concat(resource.ResourceTypeName, "/");
             linktoRawResource = string.Concat(linktoRawResource, resource.ResourceId);
+            linktoRawResource = string.Concat(linktoRawResource, "-" + Guid.NewGuid().ToString());
 
             // linktoRawResource = resource.ResourceId;
             string awsKeyName = linktoRawResource;
@@ -427,7 +428,7 @@ namespace Microsoft.Health.Fhir.S3Storage.Features.Storage
                                client = CreatClient(_awsBucket, _configuration, _logger);
                                using (GetObjectResponse response = await client.GetObjectAsync(_awsBucket, linkToRawResource))
                                using (Stream responseStream = response.ResponseStream)
-                               using (StreamReader reader = new StreamReader(responseStream, SQLResourceEncoding))
+                               using (StreamReader reader = new StreamReader(responseStream, S3ResourceEncoding))
                                {
                                     // The following outputs the content of my text file:
                                     // string content = reader.ReadToEnd();
